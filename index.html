@@ -10,7 +10,7 @@
         <hr/>
         <ul id="clients"></ul>
         <script>
-            const entries = {"1.21.11 WASM (BETA)":"1-21-11WASM","1.21.11 (BETA)":"1-21-11","1.12.2u3":"1-12-2u3","1.12.2u3 WASM":"1-12-2u3WASM","1.8.8u53":"1-8-8u53","1.8.8u53 WASM":"1-8-8u53WASM"}
+            const entries = (await (await fetch("https://cdn.jsdelivr.net/gh/marble892/eaglercraft-jsdelivr@main/config.json")).json()).versions.reduce((acc,entry)=>{acc[entry.name]=entry.hashname;return acc},{});
             const clients = document.getElementById("clients");
             for (const [name, hashname] of Object.entries(entries)) {
                 const li = document.createElement("li");
