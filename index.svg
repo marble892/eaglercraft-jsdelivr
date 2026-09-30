@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg">
 <script type="module"><![CDATA[
     const hash = window.location.hash.slice(1);
-    const config = await (await fetch("config.json")).json();
+    const config = (await (await fetch("config.json")).json()).versions;
     const hashnames = config.map(entry=>entry.hashname);
     let blob;
     if(hashnames.includes(hash)) {
