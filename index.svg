@@ -1,18 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg">
-<script type="module"><![CDATA[
+<script>
     const hash = window.location.hash.slice(1);
-    const config = await (await fetch("https://cdn.jsdelivr.net/gh/marble892/eaglercraft-jsdelivr@latest/config.json")).json();
-    const versions = config["versions"]
-    const hashnames = versions.map(entry=>entry.hashname);
-    let blob;
-    if(hashnames.includes(hash)) {
-        const entry = versions.find(e=>e.hashname===hash);
-        const parts = await Promise.all(entry.files.map(url=>fetch(`https://cdn.jsdelivr.net/gh/marble892/eaglercraft-jsdelivr@latest/parts/${url}`)))
-        const blobs = await Promise.all(parts.map(res=>res.blob()));
-        blob = new Blob(blobs,{type:"text/html"});
-    } else {
-        blob = new Blob([await (await fetch("https://cdn.jsdelivr.net/gh/marble892/eaglercraft-jsdelivr@latest/index.html")).text()],{type:"text/html"});
-    }
-    window.location.href = URL.createObjectURL(blob)
-]]></script>
+    fetch("https://cdn.jsdelivr.net/gh/marble892/eaglercraft-jsdelivr@latest/config.json")
+    .then(res=>res.json())
+    .then(json=>{
+        const versions = json["versions"]
+        const hashnames = versions.map(entry=>entry["hashname"]) 
+        if(hashnames.includes(hash)) {
+            return Promise.all((versions.find(e=>e.hashname===hash)).files.map(url=>fetch(`https://cdn.jsdelivr.net/gh/marble892/eaglercraft-jsdelivr@latest/parts/${url}`)))
+                .then(parts=>Promise.all(parts.map(res=>res.blob())))
+        } else {
+            return fetch("https://cdn.jsdelivr.net/gh/marble892/eaglercraft-jsdelivr@latest/index.html")
+                .then(res=>res.text())
+                .then(text=>[text])
+        }
+    })
+    .then(data=>new Blob(data,{type:"text/html"}))
+    .then(blob=>{window.location.href = URL.createObjectURL(blob)})
+</script>
 </svg>
