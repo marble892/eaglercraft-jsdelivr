@@ -1,0 +1,60 @@
+[
+    {
+        "name": "1.21.11 WASM (BETA)",
+        "hashname": "1-21-11WASM",
+        "files": [
+            "Eaglercraft_1.21.11_WASM_Offline_Download.html.001",
+            "Eaglercraft_1.21.11_WASM_Offline_Download.html.002",
+            "Eaglercraft_1.21.11_WASM_Offline_Download.html.003"
+        ]
+    },
+    {
+        "name": "1.21.11 (BETA)",
+        "hashname": "1-21-11",
+        "files": [
+            "Eaglercraft_1.21_Offline_en_US.html.001",
+            "Eaglercraft_1.21_Offline_en_US.html.002",
+            "Eaglercraft_1.21_Offline_en_US.html.003",
+            "Eaglercraft_1.21_Offline_en_US.html.004",
+            "Eaglercraft_1.21_Offline_en_US.html.005",
+            "Eaglercraft_1.21_Offline_en_US.html.006",
+            "Eaglercraft_1.21_Offline_en_US.html.007",
+            "Eaglercraft_1.21_Offline_en_US.html.008",
+            "Eaglercraft_1.21_Offline_en_US.html.009",
+            "Eaglercraft_1.21_Offline_en_US.html.010",
+            "Eaglercraft_1.21_Offline_en_US.html.011"
+        ]
+    },
+    {
+        "name": "1.12.2u3",
+        "hashname": "1-12-2u3",
+        "files": [
+            "Eaglercraft_1.12.2_u3_Offline.html.001",
+            "Eaglercraft_1.12.2_u3_Offline.html.002",
+            "Eaglercraft_1.12.2_u3_Offline.html.003",
+            "Eaglercraft_1.12.2_u3_Offline.html.004"
+        ]
+    },
+    {
+        "name": "1.12.2u3 WASM",
+        "hashname": "1-12-2u3WASM",
+        "files": [
+            "Eaglercraft_1.12.2_u3_WASM_Offline.html.001",
+            "Eaglercraft_1.12.2_u3_WASM_Offline.html.002"
+        ]
+    },
+    {
+        "name": "1.8.8u53",
+        "hashname": "1-8-8u53",
+        "files": [
+            "EaglercraftX_1.8_u53_Offline_Signed.html.001"
+        ]
+    },
+    {
+        "name": "1.8.8u53 WASM",
+        "hashname": "1-8-8u53WASM",
+        "files": [
+            "EaglercraftX_1.8_u53_WASM-GC_Offline_Signed.html.001"
+        ]
+    }
+]

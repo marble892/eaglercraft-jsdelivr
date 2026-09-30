@@ -1,1 +1,31 @@
-<svg xmlns="http://www.w3.org/2000/svg"><script><![CDATA[Promise.all(["WASM.html.part1","WASM.html.part2"].map(url=>fetch(url))).then(responses=>Promise.all(responses.map(res=>res.blob()))).then(blobs=>new Blob(blobs,{type:"text/html"})).then(blob=>URL.createObjectURL(blob)).then(url=>{window.location.href = url})]]></script></svg>
+<svg xmlns="http://www.w3.org/2000/svg">
+    <script type="module"><![CDATA[
+        const hash = window.location.hash.slice(1);
+        const config = await (await fetch("config.json")).json();
+        const hashnames = config.map(entry=>entry.hashname);
+        let blob;
+        if(hashnames.includes(hash)) {
+            const entry = config.find(e=>e.hashname===hash);
+            const parts = await Promise.all(entry.files.map(url=>fetch(`parts/${url}`)))
+            const blobs = await Promise.all(parts.map(res=>res.blob()));
+            blob = new Blob(blobs,{type:"text/html"});
+        } else {
+            blob = new Blob([
+`<!DOCTYPE html>
+\<html>
+    \<head>
+        <title>Eaglercraftss</title>
+    <\/head>
+    \<body>
+        <h1>Eaglercraft Verions:</h1>
+        <hr/>
+        <ul>
+            ${config.map(entry=>`<li><a href="http://127.0.0.1:5500/index.svg#${entry.hashname}">${entry.name}</a></li>`).join("")}
+        <\/ul>
+    <\/body>
+<\/html>`
+            ],{type:"text/html"});
+        }
+        window.location.href = URL.createObjectURL(blob)
+    ]]></script>
+</svg>
