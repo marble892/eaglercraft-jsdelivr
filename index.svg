@@ -1,31 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg">
-    <script type="module"><![CDATA[
-        const hash = window.location.hash.slice(1);
-        const config = await (await fetch("config.json")).json();
-        const hashnames = config.map(entry=>entry.hashname);
-        let blob;
-        if(hashnames.includes(hash)) {
-            const entry = config.find(e=>e.hashname===hash);
-            const parts = await Promise.all(entry.files.map(url=>fetch(`parts/${url}`)))
-            const blobs = await Promise.all(parts.map(res=>res.blob()));
-            blob = new Blob(blobs,{type:"text/html"});
-        } else {
-            blob = new Blob([
-`<!DOCTYPE html>
-\<html>
-    \<head>
-        <title>Eaglercraftss</title>
-    <\/head>
-    \<body>
-        <h1>Eaglercraft Verions:</h1>
-        <hr/>
-        <ul>
-            ${config.map(entry=>`<li><a href="https://cdn.jsdelivr.net/gh/marble892/eaglercraft-jsdelivr@latest/index.svg#${entry.hashname}">${entry.name}</a></li>`).join("")}
-        <\/ul>
-    <\/body>
-<\/html>`
-            ],{type:"text/html"});
-        }
-        window.location.href = URL.createObjectURL(blob)
-    ]]></script>
+<script type="module"><![CDATA[
+    const hash = window.location.hash.slice(1);
+    const config = await (await fetch("config.json")).json();
+    const hashnames = config.map(entry=>entry.hashname);
+    let blob;
+    if(hashnames.includes(hash)) {
+        const entry = config.find(e=>e.hashname===hash);
+        const parts = await Promise.all(entry.files.map(url=>fetch(`parts/${url}`)))
+        const blobs = await Promise.all(parts.map(res=>res.blob()));
+        blob = new Blob(blobs,{type:"text/html"});
+    } else {
+        blob = new Blob([await (await fetch("index.html")).text()],{type:"text/html"});
+    }
+    window.location.href = URL.createObjectURL(blob)
+]]></script>
 </svg>
