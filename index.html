@@ -9,8 +9,8 @@
         <h1>Eaglercrafts:</h1>
         <hr/>
         <ul id="clients"></ul>
-        <script>
-            const entries = (await (await fetch("https://cdn.jsdelivr.net/gh/marble892/eaglercraft-jsdelivr@main/config.json")).json()).versions.reduce((acc,entry)=>{acc[entry.name]=entry.hashname;return acc},{});
+        <script type="module">
+            const entries = (await (await fetch("https://cdn.jsdelivr.net/gh/marble892/eaglercraft-jsdelivr@main/config.json")).json())["versions"].reduce((acc,entry)=>{acc[entry.name]=entry.hashname;return acc},{});
             const clients = document.getElementById("clients");
             for (const [name, hashname] of Object.entries(entries)) {
                 const li = document.createElement("li");
