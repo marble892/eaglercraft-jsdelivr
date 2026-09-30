@@ -4,7 +4,7 @@ Jx8LK7dLYGV4pb/OW5y175+luThFAbeeWtoPTjgho+BWt5z/ZRN2HszXeBRJle90xbEWnJNIi7Q+AQvK
 	var launchCounter = 1;
 	var launchCountdownNumberElement = null;
 	var launchCountdownProgressElement = null;
-	var launchSkipCountdown = false;
+	var launchSkipCountdown = true;
 
 	var launchTick = function() {
 		launchCountdownNumberElement.innerText = "" + Math.floor(6.0 - launchCounter * 0.06);
