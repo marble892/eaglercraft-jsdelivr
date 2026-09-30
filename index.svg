@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" 
+width="100%" height="100%" 
+style="position:fixed;top:0;left:0">
+<script><![CDATA[
+Promise.all([
+"WASM.html.part1",
+"WASM.html.part2"
+].map(url=>fetch(url)))
+.then(responses=>Promise.all(responses.map(res=>
+res.blob())))
+.then(blobs=>new 
+Blob(blobs,{type:"text/html"}))
+.then(blob=>URL.createObjectURL(blob))
+.then(url=>{window.location.href = url})
+]]></script>
+</svg>
