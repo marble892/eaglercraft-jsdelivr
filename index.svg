@@ -20,7 +20,7 @@
         <h1>Eaglercraft Verions:</h1>
         <hr/>
         <ul>
-            ${config.map(entry=>`<li><a href="http://127.0.0.1:5500/index.svg#${entry.hashname}">${entry.name}</a></li>`).join("")}
+            ${config.map(entry=>`<li><a href="https://cdn.jsdelivr.net/gh/marble892/eaglercraft-jsdelivr@latest/index.svg#${entry.hashname}">${entry.name}</a></li>`).join("")}
         <\/ul>
     <\/body>
 <\/html>`
