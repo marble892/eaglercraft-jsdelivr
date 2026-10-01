@@ -1,21 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg">
 <script>
-    const hash = window.location.hash.slice(1);
+    const hash=window.location.hash.slice(1);
     fetch("https://cdn.jsdelivr.net/gh/marble892/eaglercraft-jsdelivr@latest/config.json")
     .then(res=>res.json())
     .then(json=>{
-        const versions = json["versions"]
-        const hashnames = versions.map(entry=>entry["hashname"]) 
+        const versions=json["versions"]
+        const hashnames=versions.map(entry=>entry["hashname"]) 
         if(hashnames.includes(hash)) {
-            return Promise.all((versions.find(e=>e.hashname===hash)).files.map(url=>fetch(`https://cdn.jsdelivr.net/gh/marble892/eaglercraft-jsdelivr@latest/parts/${url}`)))
+            return Promise.all(versions.find(e=>e.hashname===hash).files.map(url=>fetch(`https://cdn.jsdelivr.net/gh/marble892/eaglercraft-jsdelivr@latest/parts/${url}`)))
                 .then(parts=>Promise.all(parts.map(res=>res.blob())))
         } else {
             return fetch("https://cdn.jsdelivr.net/gh/marble892/eaglercraft-jsdelivr@latest/index.html")
-                .then(res=>res.text())
-                .then(text=>[text])
+                .then(res=>res.blob())
         }
     })
     .then(data=>new Blob(data,{type:"text/html"}))
-    .then(blob=>{window.location.href = URL.createObjectURL(blob)})
+    .then(blob=>{window.location.href=URL.createObjectURL(blob)})
 </script>
 </svg>
