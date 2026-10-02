@@ -11,7 +11,7 @@
                 .then(parts=>Promise.all(parts.map(res=>res.blob())))
         } else {
             return fetch("https://cdn.jsdelivr.net/gh/marble892/eaglercraft-jsdelivr@latest/index.html")
-                .then(res=>res.blob())
+                .then(res=>[res.blob()])
         }
     })
     .then(data=>new Blob(data,{type:"text/html"}))
