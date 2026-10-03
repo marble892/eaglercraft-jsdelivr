@@ -20,10 +20,24 @@
         const XHTML = "http://www.w3.org/1999/xhtml";
         document.title = "Eaglercraft";
         const app = document.getElementById("app");
+
         const hash = decodeURIComponent(
             location.hash.slice(1)
         );
-        const createElement = (tag, text = "", attributes = {}) => {const el = document.createElementNS(XHTML, tag);for (const [key, value] of Object.entries(attributes)) { el.setAttribute(key, value);}if (text !== null && text !== undefined) {el.textContent = text;}return el;};
+        
+        const createElement = (tag, text = "", attributes = {}) => {
+            const el = document.createElementNS(XHTML, tag);
+
+            for (const [key, value] of Object.entries(attributes)) {
+                el.setAttribute(key, value);
+            }
+
+            if (text !== null && text !== undefined) {
+                el.textContent = text;
+            }
+
+            return el;
+        };
 
         const formatBytes = bytes => {
             if (!Number.isFinite(bytes) || bytes <= 0) {
@@ -46,11 +60,6 @@
             return Math.min(100, downloaded / total * 100);
         };
 
-        /*
-         * Download one file.
-         *
-         * onProgress(downloaded, total)
-         */
         const fetchFile = async (url, onProgress) => {
             const response = await fetch(url);
 
@@ -83,18 +92,9 @@
                 onProgress?.(downloaded, total);
             }
 
-            /*
-             * Blob(parts) preserves the exact byte sequence.
-             */
             return new Blob(chunks);
         };
 
-        /*
-         * Download every part in parallel.
-         *
-         * onProgressPerFile(index, downloaded, total)
-         * onProgress(totalDownloaded, totalSize)
-         */
         const fetchClient = async (
             client,
             onProgressPerFile,
@@ -128,10 +128,6 @@
                     0
                 );
 
-                /*
-                 * Files without Content-Length contribute 0 to the
-                 * known total rather than making the percentage NaN.
-                 */
                 const sizeTotal = progress.reduce(
                     (sum, file) => sum + file.size,
                     0
@@ -157,14 +153,6 @@
                 );
             };
 
-            /*
-             * IMPORTANT:
-             *
-             * The index is captured here.
-             * The original code passed a callback expecting
-             * (index, downloaded, size), but fetchFile actually
-             * called it as (downloaded, size).
-             */
             const promises = urls.map((url, index) => {
                 const fileElement = createElement(
                     "pre",
@@ -217,9 +205,6 @@
             return Promise.all(promises);
         };
 
-        /*
-         * Load config.json first.
-         */
         const loadConfig = async () => {
             const response = await fetch("config.json");
 
@@ -232,9 +217,6 @@
             return response.json();
         };
 
-        /*
-         * Combine all downloaded parts into one HTML document.
-         */
         const launchClient = async client => {
             console.log(
                 `Loading client: ${client.name}`,
@@ -275,28 +257,15 @@
                 }
             );
 
-            /*
-             * Convert all the individual Blobs into one Blob.
-             *
-             * Do NOT use Blob URLs for the individual files;
-             * only the final document needs one.
-             */
             const htmlBlob = new Blob(parts, {
                 type: "text/html"
             });
 
             const url = URL.createObjectURL(htmlBlob);
 
-            /*
-             * Keep the URL alive during navigation.
-             * The browser owns it after navigation.
-             */
             location.href = url;
         };
 
-        /*
-         * Render the client selection page.
-         */
         const renderClientList = clients => {
             app.replaceChildren();
 
@@ -327,10 +296,6 @@
                 link.addEventListener("click", async event => {
                     event.preventDefault();
 
-                    /*
-                     * Update the URL so refreshing/bookmarking
-                     * the page still selects this client.
-                     */
                     history.pushState(
                         null,
                         "",
@@ -375,9 +340,6 @@
             app.append(list);
         };
 
-        /*
-         * Main.
-         */
         (async () => {
             try {
                 const config = await loadConfig();
