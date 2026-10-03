@@ -1,5 +1,5 @@
 {
-    "versions": [
+    "clients": [
         {
             "name": "1.21.11 WASM (BETA)",
             "hashname": "1-21-11WASM",

@@ -1,20 +1,426 @@
-<svg xmlns="http://www.w3.org/2000/svg">
-<script>
-    const hash=window.location.hash.slice(1);
-    fetch("https://cdn.jsdelivr.net/gh/marble892/eaglercraft-jsdelivr@latest/config.json")
-    .then(res=>res.json())
-    .then(json=>{
-        const versions=json["versions"]
-        const hashnames=versions.map(entry=>entry["hashname"]) 
-        if(hashnames.includes(hash)) {
-            return Promise.all(versions.find(e=>e.hashname===hash).files.map(url=>fetch(`https://cdn.jsdelivr.net/gh/marble892/eaglercraft-jsdelivr@latest/parts/${url}`)))
-                .then(parts=>Promise.all(parts.map(res=>res.blob())))
-        } else {
-            return fetch("https://cdn.jsdelivr.net/gh/marble892/eaglercraft-jsdelivr@latest/index.html")
-                .then(res=>res.blob())
-        }
-    })
-    .then(data=>new Blob(data,{type:"text/html"}))
-    .then(blob=>{window.location.href=URL.createObjectURL(blob)})
-</script>
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="100%"
+     height="100%"
+     style="position:fixed;inset:0;background-color:#0f0f0f;">
+
+    <foreignObject x="0" y="0" width="100%" height="100%">
+        <div xmlns="http://www.w3.org/1999/xhtml"
+             id="app"
+             style="width:100%;height:100%;font-family:sans-serif;padding:0;margin:0;background-color:#0f0f0f;color:#fff;">
+            <link rel="stylesheet"
+                        href="./style.css" />
+            <meta name="viewport"
+                  content="width=device-width, initial-scale=1.0"/>
+        </div>
+    </foreignObject>
+
+    <script><![CDATA[
+    (() => {
+        "use strict";
+        const XHTML = "http://www.w3.org/1999/xhtml";
+        document.title = "Eaglercraft";
+        const app = document.getElementById("app");
+        const hash = decodeURIComponent(
+            location.hash.slice(1)
+        );
+        const createElement = (tag, text = "", attributes = {}) => {const el = document.createElementNS(XHTML, tag);for (const [key, value] of Object.entries(attributes)) { el.setAttribute(key, value);}if (text !== null && text !== undefined) {el.textContent = text;}return el;};
+
+        const formatBytes = bytes => {
+            if (!Number.isFinite(bytes) || bytes <= 0) {
+                return "0 B";
+            }
+
+            const units = ["B", "KB", "MB", "GB", "TB"];
+            const i = Math.min(
+                Math.floor(Math.log(bytes) / Math.log(1024)),
+                units.length - 1
+            );
+
+            return `${parseFloat(
+                (bytes / 1024 ** i).toFixed(2)
+            )} ${units[i]}`;
+        };
+
+        const progressPercent = (downloaded, total) => {
+            if (!total) return null;
+            return Math.min(100, downloaded / total * 100);
+        };
+
+        /*
+         * Download one file.
+         *
+         * onProgress(downloaded, total)
+         */
+        const fetchFile = async (url, onProgress) => {
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error(
+                    `${url}: HTTP ${response.status} ${response.statusText}`
+                );
+            }
+
+            if (!response.body) {
+                throw new Error(`${url}: Response has no body`);
+            }
+
+            const total =
+                Number(response.headers.get("content-length")) || 0;
+
+            let downloaded = 0;
+            const chunks = [];
+
+            const reader = response.body.getReader();
+
+            while (true) {
+                const { done, value } = await reader.read();
+
+                if (done) break;
+
+                chunks.push(value);
+                downloaded += value.byteLength;
+
+                onProgress?.(downloaded, total);
+            }
+
+            /*
+             * Blob(parts) preserves the exact byte sequence.
+             */
+            return new Blob(chunks);
+        };
+
+        /*
+         * Download every part in parallel.
+         *
+         * onProgressPerFile(index, downloaded, total)
+         * onProgress(totalDownloaded, totalSize)
+         */
+        const fetchClient = async (
+            client,
+            onProgressPerFile,
+            onProgress
+        ) => {
+            const urls = client.files.map(
+                file => `parts/${file}`
+            );
+
+            const progress = urls.map(() => ({
+                downloaded: 0,
+                size: 0,
+                status: "pending"
+            }));
+
+            const updateProgress = () => {
+                for (let index = 0; index < urls.length; index++) {
+                    const file = progress[index];
+
+                    if (!file || file.downloaded <= 0) {
+                        progress[index].status = "pending";
+                    } else if (file.size > 0 && file.downloaded >= file.size) {
+                        progress[index].status = "done";
+                    } else {
+                        progress[index].status = "downloading";
+                    }
+                }
+
+                const downloadedTotal = progress.reduce(
+                    (sum, file) => sum + file.downloaded,
+                    0
+                );
+
+                /*
+                 * Files without Content-Length contribute 0 to the
+                 * known total rather than making the percentage NaN.
+                 */
+                const sizeTotal = progress.reduce(
+                    (sum, file) => sum + file.size,
+                    0
+                );
+
+                const percent = progressPercent(
+                    downloadedTotal,
+                    sizeTotal
+                );
+
+                if (percent !== null) {
+                    document.title =
+                        `Downloading... (${percent.toFixed(1)}%)`;
+                } else {
+                    document.title =
+                        `Downloading... (${formatBytes(downloadedTotal)})`;
+                }
+
+                onProgress?.(
+                    downloadedTotal,
+                    sizeTotal,
+                    progress
+                );
+            };
+
+            /*
+             * IMPORTANT:
+             *
+             * The index is captured here.
+             * The original code passed a callback expecting
+             * (index, downloaded, size), but fetchFile actually
+             * called it as (downloaded, size).
+             */
+            const promises = urls.map((url, index) => {
+                const fileElement = createElement(
+                    "pre",
+                    "",
+                    {
+                        style:
+                            "margin:4px 0;white-space:pre-wrap"
+                    }
+                );
+
+                app.append(fileElement);
+
+                return fetchFile(
+                    url,
+                    (downloaded, size) => {
+                        progress[index] = {
+                            downloaded,
+                            size
+                        };
+
+                        const percent =
+                            progressPercent(downloaded, size);
+
+                        fileElement.textContent =
+                            (percent === null
+                                ? `[${formatBytes(downloaded)}]`
+                                : `[${percent.toFixed(1)}%]` +
+                                ` ${url} ` +
+                                  `(${formatBytes(downloaded)} / ` +
+                                  `${formatBytes(size)})` +
+                                  ` - ${progress[index]?.status || "pending"}`);
+
+                        onProgressPerFile?.(
+                            index,
+                            downloaded,
+                            size
+                        );
+
+                        updateProgress();
+                    }
+                ).catch(error => {
+                    progress[index].status = "error";
+                    throw error;
+                }).finally(() => {
+                    progress[index].status = "done";
+                    fileElement.remove();
+                });
+            });
+
+            return Promise.all(promises);
+        };
+
+        /*
+         * Load config.json first.
+         */
+        const loadConfig = async () => {
+            const response = await fetch("config.json");
+
+            if (!response.ok) {
+                throw new Error(
+                    `config.json: HTTP ${response.status}`
+                );
+            }
+
+            return response.json();
+        };
+
+        /*
+         * Combine all downloaded parts into one HTML document.
+         */
+        const launchClient = async client => {
+            console.log(
+                `Loading client: ${client.name}`,
+                client
+            );
+
+            const clientText = createElement("pre", `Downloading ${client.name}...`);
+            app.append(clientText);
+
+            const parts = await fetchClient(
+                client,
+                (index, downloaded, size) => {
+                    console.log(
+                        `[${index + 1}/${client.files.length}]`,
+                        formatBytes(downloaded),
+                        size
+                            ? `/ ${formatBytes(size)}`
+                            : ""
+                    );
+                },
+                (downloaded, size, statuses) => {
+                    const percent =
+                        progressPercent(downloaded, size);
+
+                    if (percent !== null) {
+                        const finished = statuses.filter(s => s.status === "done").length;
+                        clientText.textContent =
+                            `[${finished}/${client.files.length}]` + 
+                            ` ${client.name} ` +
+                            `(${formatBytes(downloaded)} / ` +
+                            `${formatBytes(size)})`
+                        console.log(
+                            `Overall: ${percent.toFixed(2)}% ` +
+                            `(${formatBytes(downloaded)} / ` +
+                            `${formatBytes(size)})`
+                        );
+                    }
+                }
+            );
+
+            /*
+             * Convert all the individual Blobs into one Blob.
+             *
+             * Do NOT use Blob URLs for the individual files;
+             * only the final document needs one.
+             */
+            const htmlBlob = new Blob(parts, {
+                type: "text/html"
+            });
+
+            const url = URL.createObjectURL(htmlBlob);
+
+            /*
+             * Keep the URL alive during navigation.
+             * The browser owns it after navigation.
+             */
+            location.href = url;
+        };
+
+        /*
+         * Render the client selection page.
+         */
+        const renderClientList = clients => {
+            app.replaceChildren();
+
+            app.append(
+                createElement(
+                    "h1",
+                    "Eaglercrafts:"
+                ),
+
+                createElement("hr")
+            );
+
+            const list = createElement("ul");
+
+            for (const client of Object.values(clients)) {
+                const item = createElement("li");
+
+                const link = createElement(
+                    "a",
+                    client.name,
+                    {
+                        href: `#${encodeURIComponent(
+                            client.hashname
+                        )}`
+                    }
+                );
+
+                link.addEventListener("click", async event => {
+                    event.preventDefault();
+
+                    /*
+                     * Update the URL so refreshing/bookmarking
+                     * the page still selects this client.
+                     */
+                    history.pushState(
+                        null,
+                        "",
+                        `#${encodeURIComponent(
+                            client.hashname
+                        )}`
+                    );
+
+                    try {
+                        app.replaceChildren();
+
+                        app.append(
+                            createElement(
+                                "b",
+                                `Loading ${client.name}...`
+                            )
+                        );
+
+                        await launchClient(client);
+                    } catch (error) {
+                        console.error(error);
+
+                        app.replaceChildren();
+
+                        app.append(
+                            createElement(
+                                "b",
+                                "Failed to load client"
+                            ),
+                            createElement(
+                                "pre",
+                                String(error)
+                            )
+                        );
+                    }
+                });
+
+                item.append(link);
+                list.append(item);
+            }
+
+            app.append(list);
+        };
+
+        /*
+         * Main.
+         */
+        (async () => {
+            try {
+                const config = await loadConfig();
+                const clients = config.clients;
+
+                if (!clients) {
+                    throw new Error(
+                        "config.json does not contain a 'clients' object"
+                    );
+                }
+
+                if (hash) {
+                    const client = Object.values(clients)
+                        .find(
+                            c => c.hashname === hash
+                        );
+
+                    if (!client) {
+                        throw new Error(
+                            `Client '${hash}' was not found`
+                        );
+                    }
+
+                    await launchClient(client);
+                } else {
+                    renderClientList(clients);
+                }
+
+            } catch (error) {
+                console.error(error);
+
+                app.replaceChildren(
+                    createElement(
+                        "h1",
+                        "Eaglercraft loader error"
+                    ),
+                    createElement(
+                        "pre",
+                        String(error)
+                    )
+                );
+            }
+        })();
+    })();
+    ]]></script>
 </svg>
